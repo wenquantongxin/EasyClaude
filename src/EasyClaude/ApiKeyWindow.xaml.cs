@@ -15,7 +15,7 @@ public partial class ApiKeyWindow : Window
         _orchestrator = orchestrator;
         InitializeComponent();
         ShowCurrent();
-        if (orchestrator.ApiKey.LastTest is { } last) ShowResult(last);
+        if (orchestrator.ApiKey.LastTest is { } last) ShowResult(last, orchestrator.ApiKey.IsHistorical, orchestrator.ApiKey.TestedAt);
         Loaded += (_, _) => KeyBox.Focus();
         Closing += (_, _) => _operation?.Cancel();
     }
@@ -65,11 +65,12 @@ public partial class ApiKeyWindow : Window
         CurrentText.Text = "已保存的 Key：" + (_orchestrator.ApiKey.Configured ? _orchestrator.ApiKey.Hint ?? "已配置" : "未配置");
         UpdateAction();
     }
-    private void ShowResult(ApiKeyTest result)
+    private void ShowResult(ApiKeyTest result, bool historical = false, DateTimeOffset? testedAt = null)
     {
         ResultText.Foreground = result.Ok ? Brushes.SeaGreen : Brushes.Firebrick;
         var saved = result.Saved ? "新 Key 已保存。\n" : string.Empty;
-        ResultText.Text = saved + (result.Ok ? $"模型测试成功 · {result.Model} · {result.LatencyMs} ms\nClaude 回复：{result.Reply}" :
+        var history = historical ? "上次测试记录" + (testedAt is { } at ? $" · {at.ToLocalTime():yyyy-MM-dd HH:mm}" : "") + "\n本次启动未重新发送测试请求。\n" : string.Empty;
+        ResultText.Text = history + saved + (result.Ok ? $"模型测试成功 · {result.Model} · {result.LatencyMs} ms" + (result.Reply is null ? "" : "\nClaude 回复：" + result.Reply) :
                 result.Message + (result.Model is null ? "" : $"\n实际模型：{result.Model} · {result.LatencyMs} ms"))
             + (result.FallbackReason is null ? "" : "\n" + result.FallbackReason);
     }

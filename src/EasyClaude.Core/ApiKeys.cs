@@ -5,10 +5,14 @@ public sealed record ApiKeyTest(bool Ok, string Message, string? Model = null, s
     bool Saved = false, string? FallbackReason = null);
 
 /// <summary>What the UI may know about the stored key: whether one exists and its first few characters.</summary>
-public sealed record ApiKeyState(bool Configured, string? Hint, ApiKeyTest? LastTest)
+public sealed record ApiKeyState(bool Configured, string? Hint, ApiKeyTest? LastTest,
+    DateTimeOffset? TestedAt = null, bool IsHistorical = false)
 {
     public static readonly ApiKeyState Unknown = new(false, null, null);
 }
+
+/// <summary>Opaque identity binds a remembered test to the exact stored credential, without exposing its key.</summary>
+public sealed record ApiKeyCredential(string Id, bool Active, string? Hint, string? Identity);
 
 public static class ApiKeyMask
 {

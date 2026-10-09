@@ -35,6 +35,7 @@ public sealed class AppPaths
     public string DataDir => Path.Combine(Root, "data");
     public string SettingsFile => Path.Combine(DataDir, "settings.json");
     public string EgressFile => Path.Combine(DataDir, "egress.json");
+    public string ApiKeyTestFile => Path.Combine(DataDir, "api-key-test.json");
     public string ProfilesDir => Path.Combine(DataDir, "profiles");
     public string ProfileFile => Path.Combine(ProfilesDir, "profile.yml.dpapi");
     public string MihomoHome => Path.Combine(DataDir, "mihomo");

@@ -4,23 +4,107 @@
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="Easy Claude" Icon="Assets/EasyClaude.ico" Width="1280" Height="820" MinWidth="1020" MinHeight="500"
         WindowStartupLocation="CenterScreen" Background="#F8FAFC">
+    <Window.Resources>
+        <Style x:Key="ToolbarButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#334155" />
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderBrush" Value="#E2E8F0" />
+            <Setter Property="Padding" Value="11,8" />
+            <Setter Property="MinHeight" Value="35" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Frame" CornerRadius="8" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Frame" Property="Background" Value="#EFF6FF" />
+                                <Setter TargetName="Frame" Property="BorderBrush" Value="#93C5FD" />
+                                <Setter Property="Foreground" Value="#1D4ED8" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Frame" Property="Background" Value="#DBEAFE" /></Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="#60A5FA" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Frame" Property="Opacity" Value="0.45" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ToolbarIcon" TargetType="Path">
+            <Setter Property="Width" Value="14" /><Setter Property="Height" Value="14" />
+            <Setter Property="Stretch" Value="Uniform" /><Setter Property="Margin" Value="0,0,7,0" />
+            <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+            <Setter Property="StrokeThickness" Value="1.6" />
+            <Setter Property="StrokeStartLineCap" Value="Round" /><Setter Property="StrokeEndLineCap" Value="Round" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+        </Style>
+        <Style x:Key="WifiButton" TargetType="Button">
+            <Setter Property="Width" Value="24" /><Setter Property="Height" Value="22" />
+            <Setter Property="MinHeight" Value="0" /><Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" /><Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Frame" Background="{TemplateBinding Background}" CornerRadius="6"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Frame" Property="Background" Value="#E5EFFF" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Frame" Property="Background" Value="#D6E6FE" /></Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="#60A5FA" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Frame" Property="Opacity" Value="0.55" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="InfoCard" TargetType="Border">
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="BorderBrush" Value="#E8EDF4" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="12,8" />
+        </Style>
+        <Style x:Key="InfoHeading" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#75849A" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </Window.Resources>
     <DockPanel>
-        <Border DockPanel.Dock="Top" Background="#192238" Padding="18,12">
+        <Border DockPanel.Dock="Top" Background="#FFFFFF" BorderBrush="#E5EBF3" BorderThickness="0,0,0,1" Padding="20,14,20,12">
             <StackPanel>
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                        <Button x:Name="ImportButton" Content="导入节点配置" Margin="8,0,0,0" Click="Import_Click"
-                                ToolTip="验证配置并保存到程序目录，再重新加载连接服务" />
-                        <Button x:Name="ApiKeyButton" Content="Claude API Key" Margin="8,0,14,0" Click="ApiKey_Click" />
-                        <Button x:Name="RestartProxyButton" Content="重启代理" Margin="8,0,0,0" Click="RestartProxy_Click"
-                                ToolTip="只重新启动代理服务，OpenCode 和会话历史保留" />
-                        <Button x:Name="RestartAllButton" Content="重启程序" Margin="8,0,0,0" Click="RestartAll_Click"
-                                ToolTip="重新启动 Easy Claude 和连接服务，当前生成会中断，会话历史保留" />
-                        <Button x:Name="MoreButton" Content="更多 ···" Margin="8,0,0,0" Click="More_Click">
+                        <Button x:Name="ImportButton" Style="{StaticResource ToolbarButton}" Margin="8,0,0,0" Click="Import_Click"
+                                ToolTip="验证配置并保存到程序目录，再重新加载连接服务" AutomationProperties.Name="导入节点配置">
+                            <StackPanel Orientation="Horizontal"><Path Style="{StaticResource ToolbarIcon}" Data="M3,10 L3,17 Q3,19 5,19 L19,19 Q21,19 21,17 L21,10 M12,3 L12,14 M7,8 L12,3 L17,8" /><TextBlock Text="导入节点配置" /></StackPanel>
+                        </Button>
+                        <Button x:Name="ApiKeyButton" Style="{StaticResource ToolbarButton}" Margin="8,0,8,0" Click="ApiKey_Click" AutomationProperties.Name="Claude API Key">
+                            <StackPanel Orientation="Horizontal"><Path Style="{StaticResource ToolbarIcon}" Data="M10,9 A4,4 0 1 1 2,9 A4,4 0 1 1 10,9 M10,9 L22,9 M18,9 L18,13 M21,9 L21,12" /><TextBlock Text="Claude API Key" /></StackPanel>
+                        </Button>
+                        <Button x:Name="RestartProxyButton" Style="{StaticResource ToolbarButton}" Margin="8,0,0,0" Click="RestartProxy_Click"
+                                ToolTip="只重新启动代理服务，OpenCode 和会话历史保留" AutomationProperties.Name="重启代理">
+                            <StackPanel Orientation="Horizontal"><Path Style="{StaticResource ToolbarIcon}" Data="M20,7 A9,9 0 1 0 21,15 M20,2 L20,7 L15,7" /><TextBlock Text="重启代理" /></StackPanel>
+                        </Button>
+                        <Button x:Name="RestartAllButton" Style="{StaticResource ToolbarButton}" Margin="8,0,0,0" Click="RestartAll_Click"
+                                ToolTip="重新启动 Easy Claude 和连接服务，当前生成会中断，会话历史保留" AutomationProperties.Name="重启程序">
+                            <StackPanel Orientation="Horizontal"><Path Style="{StaticResource ToolbarIcon}" Data="M12,2 L12,11 M6,5 A9,9 0 1 0 18,5" /><TextBlock Text="重启程序" /></StackPanel>
+                        </Button>
+                        <Button x:Name="MoreButton" Style="{StaticResource ToolbarButton}" Margin="8,0,0,0" Click="More_Click" AutomationProperties.Name="更多">
+                            <StackPanel Orientation="Horizontal"><TextBlock Text="更多" /><Path Data="M2,2 L6,6 L10,2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Margin="8,4,0,0" Width="10" Height="8" /></StackPanel>
                             <Button.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem x:Name="RecheckButton" Header="重新检测连接" Click="Recheck_Click" />
-                                    <MenuItem Header="高级设置" Click="Advanced_Click" />
+                                <ContextMenu Padding="4" HasDropShadow="True">
+                                    <MenuItem x:Name="HelpMenuItem" Header="帮助与使用指南" Click="Help_Click" />
+                                    <Separator />
+                                    <MenuItem x:Name="AdvancedMenuItem" Header="高级设置" Click="Advanced_Click" />
                                     <Separator />
                                     <MenuItem Header="打开日志目录" Click="Logs_Click" />
                                 </ContextMenu>
@@ -28,24 +112,67 @@
                         </Button>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="Assets/EasyClaude.ico" Width="30" Height="30" Margin="0,0,10,0" />
-                        <TextBlock Text="Easy Claude" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center" />
+                        <Image Source="Assets/EasyClaude.ico" Width="28" Height="28" Margin="0,0,10,0" />
+                        <TextBlock Text="Easy Claude" FontSize="17" FontWeight="SemiBold" Foreground="#19283F" VerticalAlignment="Center" />
                     </StackPanel>
                 </DockPanel>
-                <DockPanel Margin="0,12,0,0">
-                    <Border x:Name="StatusBadge" DockPanel.Dock="Left" CornerRadius="5" Background="#475569" Padding="7,3" Margin="0,0,10,0">
-                        <TextBlock x:Name="StatusGlyph" Text="准备中" Foreground="White" FontSize="11" FontWeight="SemiBold" />
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.85*" MinWidth="260" />
+                        <ColumnDefinition Width="1.75*" MinWidth="320" />
+                        <ColumnDefinition Width="1.05*" MinWidth="220" />
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="ConnectionCard" Style="{StaticResource InfoCard}">
+                        <StackPanel>
+                            <DockPanel Height="19">
+                                <Border x:Name="StatusBadge" DockPanel.Dock="Left" CornerRadius="5" Background="#EAF2FE" Padding="7,2" Margin="0,0,9,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse x:Name="StatusDot" Width="5" Height="5" Fill="#3B82F6" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                        <TextBlock x:Name="StatusGlyph" Text="准备中" Foreground="#2563EB" FontSize="10" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock x:Name="StatusText" Foreground="#64748B" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="正在启动…" />
+                            </DockPanel>
+                            <Grid Margin="0,5,0,0">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <Button x:Name="RecheckButton" Grid.Column="0" Style="{StaticResource WifiButton}" Margin="0,0,7,0"
+                                        Click="Recheck_Click" ToolTip="重新检测连接 · 节点延迟每 60 秒更新"
+                                        AutomationProperties.Name="重新检测连接" ToolTipService.ShowOnDisabled="True">
+                                    <Grid Width="18" Height="18">
+                                        <Path x:Name="WifiGlyph" Data="M2,5 Q9,-1 16,5 M4.5,8 Q9,3.5 13.5,8 M7,11 Q9,9.5 11,11"
+                                              Stroke="#3B82F6" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                        <Ellipse x:Name="WifiDot" Width="2.6" Height="2.6" Fill="#3B82F6" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,13,0,0" />
+                                        <Border x:Name="WifiOfflineBadge" Width="8" Height="8" CornerRadius="4" Background="#F8FAFC"
+                                                HorizontalAlignment="Left" VerticalAlignment="Bottom" Visibility="Collapsed">
+                                            <Path Data="M2,2 L6,6 M6,2 L2,6" Stroke="#DC425D" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                        </Border>
+                                    </Grid>
+                                </Button>
+                                <TextBlock x:Name="NodeText" Grid.Column="1" Foreground="#334155" FontSize="12" FontWeight="Medium" Margin="0,0,10,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                <Border x:Name="LatencyBadge" Grid.Column="2" Background="#EFF6FF" CornerRadius="5" Padding="7,2" VerticalAlignment="Center">
+                                    <TextBlock x:Name="LatencyText" Foreground="#3B82F6" FontSize="11" FontWeight="Medium" />
+                                </Border>
+                            </Grid>
+                        </StackPanel>
                     </Border>
-                    <TextBlock x:Name="StatusText" Foreground="#E2E8F0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="正在启动…" />
-                </DockPanel>
-                <DockPanel Margin="0,8,0,0">
-                    <Border x:Name="ConsistencyBadge" DockPanel.Dock="Right" CornerRadius="4" Padding="7,2" Margin="12,0,0,0" Visibility="Collapsed">
-                        <TextBlock x:Name="ConsistencyText" FontSize="11" />
+                    <Border x:Name="EgressCard" Grid.Column="1" Style="{StaticResource InfoCard}" Margin="12,0,0,0">
+                        <StackPanel>
+                            <DockPanel Height="19">
+                                <Border x:Name="ConsistencyBadge" DockPanel.Dock="Right" CornerRadius="4" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center" Visibility="Collapsed">
+                                    <TextBlock x:Name="ConsistencyText" FontSize="10" />
+                                </Border>
+                                <TextBlock Text="网络出口" Style="{StaticResource InfoHeading}" />
+                            </DockPanel>
+                            <TextBlock x:Name="EgressText" Foreground="#475569" FontSize="12" VerticalAlignment="Center" Height="22" Margin="0,5,0,0" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
                     </Border>
-                    <TextBlock x:Name="KeyText" DockPanel.Dock="Right" Margin="12,0,0,0" MaxWidth="370" TextTrimming="CharacterEllipsis" Foreground="#AAB8CE" Text="API Key：读取中…" />
-                    <TextBlock x:Name="NodeText" Foreground="#AAB8CE" Margin="0,0,18,0" MaxWidth="400" TextTrimming="CharacterEllipsis" ToolTip="启动时检测，之后每 60 秒更新延迟" />
-                    <TextBlock x:Name="EgressText" Foreground="#AAB8CE" TextTrimming="CharacterEllipsis" />
-                </DockPanel>
+                    <Border x:Name="KeyCard" Grid.Column="2" Style="{StaticResource InfoCard}" Margin="12,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Claude API Key" Style="{StaticResource InfoHeading}" Height="19" />
+                            <TextBlock x:Name="KeyText" Foreground="#64748B" FontSize="12" Height="22" Margin="0,5,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="正在读取凭据…" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
             </StackPanel>
         </Border>
         <Border x:Name="ConflictBanner" DockPanel.Dock="Top" Background="#FFFBEB" BorderBrush="#FCD34D" BorderThickness="0,0,0,1" Padding="16,10" Visibility="Collapsed">
@@ -58,12 +185,20 @@
             </DockPanel>
         </Border>
         <Grid>
-            <StackPanel x:Name="PreparationPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Width="580">
-                <TextBlock x:Name="Overlay" FontSize="17" Foreground="#526078" TextWrapping="Wrap" TextAlignment="Center" Text="正在准备连接服务…" />
-                <ProgressBar x:Name="PreparationProgress" Height="4" Margin="40,18,40,0" IsIndeterminate="True" Foreground="#6366F1" />
-                <Button x:Name="RetryButton" Content="重试准备" Click="Recheck_Click" HorizontalAlignment="Center" Margin="0,18,0,0" Visibility="Collapsed" />
-            </StackPanel>
+            <Border x:Name="PreparationPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Width="440"
+                    Background="White" BorderBrush="#E5EBF3" BorderThickness="1" CornerRadius="14" Padding="28">
+                <StackPanel>
+                    <Border Width="48" Height="48" CornerRadius="13" Background="#EEF2FF" HorizontalAlignment="Center">
+                        <Image Source="Assets/EasyClaude.ico" Width="30" Height="30" />
+                    </Border>
+                    <TextBlock Text="Easy Claude" FontSize="18" FontWeight="SemiBold" Foreground="#25334C" TextAlignment="Center" Margin="0,14,0,7" />
+                    <TextBlock x:Name="Overlay" FontSize="13" Foreground="#64748B" TextWrapping="Wrap" TextAlignment="Center" Text="正在准备连接服务…" />
+                    <ProgressBar x:Name="PreparationProgress" Height="3" Margin="0,20,0,0" IsIndeterminate="True" Foreground="#6366F1" />
+                    <Button x:Name="RetryButton" Content="重试准备" Click="Recheck_Click" HorizontalAlignment="Center" Margin="0,18,0,0" Visibility="Collapsed" />
+                </StackPanel>
+            </Border>
             <wv2:WebView2 x:Name="Web" Visibility="Collapsed" />
+            <ContentControl x:Name="HelpPanel" Visibility="Collapsed" />
         </Grid>
     </DockPanel>
 </Window>

@@ -1,0 +1,150 @@
+<UserControl x:Class="EasyClaude.HelpView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F3F6FB" PreviewKeyDown="Help_PreviewKeyDown">
+    <UserControl.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#526078" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="22" />
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="20" /><Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#192238" /><Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White" /><Setter Property="BorderBrush" Value="#E2E8F0" />
+            <Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="22,18" /><Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+        <Style x:Key="CardTitle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="14" /><Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#25334C" /><Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+        <Style x:Key="NavigationButton" TargetType="Button">
+            <Setter Property="Padding" Value="14,11" /><Setter Property="Margin" Value="0,0,0,6" />
+            <Setter Property="Foreground" Value="#526078" /><Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" /><Setter Property="FontSize" Value="13" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Frame" CornerRadius="8" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Left" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Frame" Property="Background" Value="#E8EFF9" /></Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Frame" Property="Background" Value="#DBEAFE" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="28,24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,20">
+            <Button x:Name="ReturnButton" DockPanel.Dock="Right" Content="返回主界面" Padding="16,8" VerticalAlignment="Center" Click="Return_Click" ToolTip="返回聊天或连接准备页面（Esc）" />
+            <StackPanel>
+                <TextBlock Text="EASY CLAUDE / 使用指南" FontSize="11" Foreground="#3B82F6" FontWeight="SemiBold" />
+                <TextBlock Text="从连接到对话，一目了然" FontSize="24" LineHeight="32" FontWeight="SemiBold" Foreground="#192238" Margin="0,4,0,0" />
+            </StackPanel>
+        </DockPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="165" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <StackPanel Margin="0,0,20,0">
+                <Button Style="{StaticResource NavigationButton}" Content="01  项目与开始使用" Tag="GettingStarted" Click="Navigation_Click" />
+                <Button Style="{StaticResource NavigationButton}" Content="02  日常操作" Tag="DailyUse" Click="Navigation_Click" />
+                <Button Style="{StaticResource NavigationButton}" Content="03  连接状态" Tag="ConnectionStatus" Click="Navigation_Click" />
+                <Button Style="{StaticResource NavigationButton}" Content="04  常见问题" Tag="Troubleshooting" Click="Navigation_Click" />
+                <Border BorderBrush="#DCE4EF" BorderThickness="0,1,0,0" Margin="12,18,0,0" Padding="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock x:Name="VersionText" FontSize="11" Foreground="#8293AC" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            <ScrollViewer x:Name="HelpScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,12,0">
+                <StackPanel x:Name="HelpDocument" MaxWidth="900" HorizontalAlignment="Stretch">
+                    <StackPanel x:Name="GettingStarted">
+                        <Border Background="#EAF2FF" BorderBrush="#D3E3FF" BorderThickness="1" CornerRadius="14" Padding="24,20" Margin="0,0,0,26">
+                            <StackPanel>
+                                <TextBlock Text="Easy Claude" FontSize="26" LineHeight="34" FontWeight="SemiBold" Foreground="#192238" />
+                                <TextBlock Text="一个面向个人日常使用的 Windows Claude 客户端。" Foreground="#334155" FontSize="15" Margin="0,8,0,0" />
+                                <TextBlock Text="在一个窗口中管理节点、Claude Key 和聊天。程序运行独立的 mihomo 与 OpenCode 服务，使用自己的配置和会话目录；默认以轻量运行和响应速度为先，可选加固位于高级设置。" Margin="0,8,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="三步开始使用" />
+                        <Border Style="{StaticResource Card}">
+                            <DockPanel>
+                                <Border DockPanel.Dock="Left" Width="30" Height="30" CornerRadius="9" Background="#EFF6FF" VerticalAlignment="Top" Margin="0,0,16,0"><TextBlock Text="1" Foreground="#2563EB" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="导入节点配置" /><TextBlock Text="点击右上角“导入节点配置”，选择包含内联节点的 mihomo / Clash YAML。验证成功后，程序保存加密副本到 data\profiles；原始文件移动或删除后仍可使用。" /></StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}">
+                            <DockPanel>
+                                <Border DockPanel.Dock="Left" Width="30" Height="30" CornerRadius="9" Background="#EFF6FF" VerticalAlignment="Top" Margin="0,0,16,0"><TextBlock Text="2" Foreground="#2563EB" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="填写 Claude API Key" /><TextBlock Text="打开“Claude API Key”，填写后点击“保存新 Key 并测试”。留空时按钮显示“测试已保存的 Key”，用于检查已有凭据。模型测试会发送一次简短问候，产生正常 API 用量。" /><TextBlock Margin="0,8,0,0"><Run FontWeight="SemiBold" Foreground="#25334C">已保存</Run><Run>与</Run><Run FontWeight="SemiBold" Foreground="#25334C">模型测试成功</Run><Run>分别显示；保存后测试失败，可先检查网络或错误信息，再重试。</Run></TextBlock></StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}">
+                            <DockPanel>
+                                <Border DockPanel.Dock="Left" Width="30" Height="30" CornerRadius="9" Background="#EFF6FF" VerticalAlignment="Top" Margin="0,0,16,0"><TextBlock Text="3" Foreground="#2563EB" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="开始对话" /><TextBlock Text="服务就绪后，在主界面的 OpenCode 聊天区新建对话并选择 Claude 模型。聊天列表仅显示当前可用的 Fable、Opus 与 Sonnet 系列；Haiku 不在列表中显示，Key 测试仍可使用它。顶部始终显示连接状态、节点延迟与出口信息。打开帮助不会停止连接，点击“返回主界面”继续聊天。" /></StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </StackPanel>
+                    <StackPanel x:Name="DailyUse" Margin="0,18,0,0">
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="日常操作" />
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardTitle}" Text="WiFi 图标 · 重新检测连接" />
+                                <TextBlock Text="位于连接状态下方、节点名称左侧。点击后重新检测节点、出口与服务连接；检测中暂时禁止重复点击。节点延迟每 60 秒自动刷新，不需要反复手动检测。" />
+                                <Border BorderBrush="#EDF1F7" BorderThickness="0,1,0,0" Margin="0,14,0,0" Padding="0,14,0,0">
+                                    <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="重启代理 / 重启程序" /><TextBlock><Run FontWeight="SemiBold" Foreground="#25334C">重启代理：</Run><Run>仅重启代理服务，聊天窗口与 OpenCode 保留；切换时进行中的网络请求可能失败。</Run><LineBreak /><Run FontWeight="SemiBold" Foreground="#25334C">重启程序：</Run><Run>关闭当前程序和服务后重新启动；正在生成的回答会中断，已保存的 Key、配置与会话历史保留。</Run></TextBlock></StackPanel>
+                                </Border>
+                                <Border BorderBrush="#EDF1F7" BorderThickness="0,1,0,0" Margin="0,14,0,0" Padding="0,14,0,0">
+                                    <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="后台运行 / 完全退出" /><TextBlock Text="关闭窗口时选择“后台运行”，程序继续在系统托盘运行，连接和后台任务保持工作。需要完全停止时，选择“退出程序”，或使用托盘菜单中的同名操作。" /></StackPanel>
+                                </Border>
+                                <Border BorderBrush="#EDF1F7" BorderThickness="0,1,0,0" Margin="0,14,0,0" Padding="0,14,0,0">
+                                    <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="更多 → 高级设置" /><TextBlock Text="严格启动检查和防火墙加固默认关闭，可按需要启用。这里也可手动检查运行组件完整性；普通聊天请求不会等待这些检查或节点测速。" /></StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                    <StackPanel x:Name="ConnectionStatus" Margin="0,18,0,0">
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="如何读懂连接状态" />
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardTitle}" Text="颜色表示节点响应延迟" />
+                                <WrapPanel Margin="0,6,0,12">
+                                    <Border Background="#EFF6FF" CornerRadius="7" Padding="10,6" Margin="0,0,8,6"><TextBlock Text="蓝色  ≤ 250 ms" Foreground="#2563EB" FontWeight="SemiBold" /></Border>
+                                    <Border Background="#FFFBEB" CornerRadius="7" Padding="10,6" Margin="0,0,8,6"><TextBlock Text="琥珀色  251–800 ms" Foreground="#B45309" FontWeight="SemiBold" /></Border>
+                                    <Border Background="#FFF1F2" CornerRadius="7" Padding="10,6" Margin="0,0,8,6"><TextBlock Text="玫红色  &gt; 800 ms" Foreground="#BE123C" FontWeight="SemiBold" /></Border>
+                                </WrapPanel>
+                                <TextBlock><Run FontWeight="SemiBold" Foreground="#25334C">灰色：</Run><Run>尚未取得检测结果。</Run><LineBreak /><Run FontWeight="SemiBold" Foreground="#25334C">左下角红叉：</Run><Run>节点探测未成功或连接已停止，可点击图标重试；失败后仍会继续自动检测。</Run></TextBlock>
+                                <TextBlock Text="延迟是响应时间，越低通常越灵敏；它不代表下载带宽，也不等于 Claude 生成回答的速度。" Margin="0,12,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="状态提示与出口信息" /><TextBlock Text="“已连接”表示连接服务就绪；“提示”表示服务仍在运行，但延迟、出口或路由检测有需要关注的信息。请结合旁边的具体文字判断。出口 IP 变化、地域偏好和其他客户端的 TUN 接管默认只提示；启用严格检查后，启动可能等待检查结果。" /><TextBlock Text="节点 WiFi 状态与后台服务状态分别显示：例如 OpenCode 服务退出时，节点本身仍可能连通。" Margin="0,8,0,0" /></StackPanel>
+                        </Border>
+                    </StackPanel>
+                    <StackPanel x:Name="Troubleshooting" Margin="0,18,0,0">
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="常见问题" />
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource CardTitle}" Text="节点未连通或聊天无法响应" />
+                                <TextBlock Text="先点击节点左侧的 WiFi 图标重新检测。若显示代理进程退出，使用“重启代理”；若显示 OpenCode 服务退出，使用“重启程序”。仍有问题时，在“更多 → 打开日志目录”查看错误信息。" />
+                                <TextBlock Style="{StaticResource CardTitle}" Text="Key 已保存，但模型测试失败" Margin="0,16,0,5" />
+                                <TextBlock Text="按窗口显示的认证、限流或网络原因处理，再用“测试已保存的 Key”重试。Haiku 确认不可用时，程序最多尝试默认模型一次，并显示实际模型和回退原因。" />
+                                <TextBlock Style="{StaticResource CardTitle}" Text="换电脑或搬动程序目录" Margin="0,16,0,5" />
+                                <TextBlock Text="同一电脑搬动目录时，保留 app、bin、data 与 easyclaude.root。新电脑复制 app、bin 与 easyclaude.root 即可，无需安装 Clash Verge 或 .NET；启动后重新导入原始节点 YAML、填写 Key。旧电脑的加密节点副本绑定 Windows 用户，不能直接解密。WebView2 使用系统运行时，缺失时会提示安装。" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="此帮助页可离线阅读，浏览时后台连接继续运行。本地配置与会话位于程序目录的 data 中。请只在 Key 窗口填写凭据，分享问题时避开 Key、节点配置及会话数据。" FontSize="12" Foreground="#8293AC" Margin="2,4,2,20" />
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

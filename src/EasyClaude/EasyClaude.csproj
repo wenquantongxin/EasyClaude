@@ -11,7 +11,7 @@
     <RootNamespace>EasyClaude</RootNamespace>
     <AssemblyName>EasyClaude</AssemblyName>
     <Product>Easy Claude</Product>
-    <Version>0.2.0</Version>
+    <Version>0.2.3</Version>
     <ApplicationIcon>Assets\EasyClaude.ico</ApplicationIcon>
   </PropertyGroup>
 

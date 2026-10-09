@@ -95,12 +95,12 @@ public sealed class OpenCodeClient : IModelTestClient, IDisposable
     }
 
     /// <summary>Stored credentials of an integration. The API returns secret values: only masked hints leave this method.</summary>
-    public async Task<IReadOnlyList<(string Id, bool Active, string? Hint)>> ListKeyCredentialsAsync(string integrationId, CancellationToken ct)
+    public async Task<IReadOnlyList<ApiKeyCredential>> ListKeyCredentialsAsync(string integrationId, CancellationToken ct)
     {
         using var response = await _http.GetAsync("api/credential", ct).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false));
-        var result = new List<(string Id, bool Active, string? Hint)>();
+        var result = new List<ApiKeyCredential>();
         if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) return result;
         foreach (var entry in data.EnumerateArray())
         {
@@ -108,10 +108,15 @@ public sealed class OpenCodeClient : IModelTestClient, IDisposable
             var id = entry.GetProperty("id").GetString()!;
             var active = entry.TryGetProperty("active", out var a) && a.ValueKind == JsonValueKind.True;
             string? hint = null;
+            string? identity = null;
             if (entry.TryGetProperty("value", out var value) && value.ValueKind == JsonValueKind.Object &&
                 value.TryGetProperty("key", out var secret) && secret.ValueKind == JsonValueKind.String)
-                hint = ApiKeyMask.Hint(secret.GetString()!);
-            result.Add((id, active, hint));
+            {
+                var key = secret.GetString()!;
+                hint = ApiKeyMask.Hint(key);
+                identity = ApiKeyVerificationStore.Identity(id, key);
+            }
+            result.Add(new(id, active, hint, identity));
         }
         return result;
     }

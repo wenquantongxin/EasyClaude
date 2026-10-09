@@ -16,7 +16,7 @@ public enum LinkState
 public sealed record LinkStatus(
     LinkState State, string Message, string? Node = null, int? DelayMs = null, string? Country = null, string? Colo = null,
     string? EgressIp = null, string? Location = null, string? Org = null,
-    EgressConsistency Consistency = EgressConsistency.Unknown, string? PreviousEgress = null)
+    EgressConsistency Consistency = EgressConsistency.Unknown, string? PreviousEgress = null, bool? NodeReachable = null)
 {
     /// <summary>"节点 X · 延迟 N ms".</summary>
     public string NodeText => string.Join(" · ", new[]
@@ -50,6 +50,8 @@ public sealed class Orchestrator : IAsyncDisposable
     private readonly FileLogger _log;
     private readonly Redactor _redactor;
     private readonly EgressHistory _egressHistory;
+    private readonly ApiKeyVerificationStore _keyVerification;
+    private string? _keyIdentity;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private JobObject? _job;
     private MihomoHost? _mihomo;
@@ -75,6 +77,7 @@ public sealed class Orchestrator : IAsyncDisposable
         _log = log;
         _redactor = redactor;
         _egressHistory = new EgressHistory(paths.EgressFile);
+        _keyVerification = new(paths.ApiKeyTestFile);
     }
 
     public event Action<LinkStatus>? StatusChanged;
@@ -204,7 +207,7 @@ public sealed class Orchestrator : IAsyncDisposable
         await StopWatchdogAsync().ConfigureAwait(false);
         if (_settings.StrictStartupChecks || awaitDiagnostics)
         {
-            Set(new(LinkState.Starting, _settings.StrictStartupChecks ? "正在执行严格启动检查…" : "正在重新检测连接…"));
+            Set(Status with { State = LinkState.Starting, Message = _settings.StrictStartupChecks ? "正在执行严格启动检查…" : "正在重新检测连接…" });
             SetConflict(await RouteInspector.CheckAsync(_build!.NodeServers, ct).ConfigureAwait(false));
             if (_settings.StrictStartupChecks && _conflict is not null && !_conflictOverridden && _openCode is not { IsRunning: true })
             {
@@ -220,7 +223,16 @@ public sealed class Orchestrator : IAsyncDisposable
         if (_settings.StrictStartupChecks || awaitDiagnostics)
         {
             var check = await RunSelfCheckAsync(ct).ConfigureAwait(false);
-            if (!check.Ok) return false;
+            if (!check.Ok)
+            {
+                // A manual failed probe must not strand a running client without periodic recovery.
+                if (_openCode is { IsRunning: true } && _mihomo is { IsRunning: true })
+                {
+                    PublishReady();
+                    StartWatchdog(diagnose: false);
+                }
+                return false;
+            }
         }
         else
         {
@@ -275,7 +287,7 @@ public sealed class Orchestrator : IAsyncDisposable
 
     private async Task<SelfCheckResult> RunSelfCheckAsync(CancellationToken ct, bool showProgress = true)
     {
-        if (showProgress) Set(new(LinkState.Starting, "正在检测节点、出口与连接…"));
+        if (showProgress) Set(Status with { State = LinkState.Starting, Message = "正在检测节点、出口与连接…" });
         var result = await SelfCheck.RunAsync(_mihomo!.Api!, _build!.LlmGroup, _secrets!, _settings, ct).ConfigureAwait(false);
         ct.ThrowIfCancellationRequested();
         _lastCheck = result;
@@ -285,7 +297,7 @@ public sealed class Orchestrator : IAsyncDisposable
         if (!result.Ok)
         {
             Set(new(LinkState.Error, result.Message, result.Node, result.DelayMs, result.Country, result.Colo,
-                result.EgressIp, result.Location, result.Org));
+                result.EgressIp, result.Location, result.Org, NodeReachable: result.DelayMs is not null));
             return result;
         }
         if (result.EgressIp is not null)
@@ -360,6 +372,9 @@ public sealed class Orchestrator : IAsyncDisposable
             var warning = await client.ReplaceAnthropicKeyAsync(key, ct, () =>
             {
                 saved = true;
+                _keyIdentity = null;
+                try { _keyVerification.Clear(); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { _log.Write("core", "clear key test metadata: " + ex.Message); }
                 ApiKey = new(true, ApiKeyMask.Hint(key), null);
                 ApiKeyChanged?.Invoke(ApiKey);
             }).ConfigureAwait(false);
@@ -395,9 +410,11 @@ public sealed class Orchestrator : IAsyncDisposable
     private async Task<ApiKeyTest> TestApiKeyCoreAsync(OpenCodeClient client, CancellationToken ct, bool saved = false)
     {
         ApiKeyTest test;
+        var remember = true;
         try
         {
-            await RefreshApiKeyStateAsync(client, ct).ConfigureAwait(false);
+            if (!await RefreshApiKeyStateAsync(client, ct).ConfigureAwait(false))
+                return new(false, "无法读取已保存的 Key，请稍后重试。", Saved: saved);
             if (!ApiKey.Configured) return new(false, "还没有保存 Key。", Saved: saved);
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(ct);
             deadline.CancelAfter(TimeSpan.FromSeconds(75));
@@ -406,6 +423,7 @@ public sealed class Orchestrator : IAsyncDisposable
         }
         catch (OperationCanceledException)
         {
+            remember = !ct.IsCancellationRequested;
             test = new(false, ct.IsCancellationRequested ? "模型测试已取消" : "模型测试超时，请稍后重试", Saved: saved);
         }
         catch (Exception ex)
@@ -413,25 +431,44 @@ public sealed class Orchestrator : IAsyncDisposable
             test = new(false, "模型测试失败：" + _redactor.Redact(ex.Message), Saved: saved);
         }
         _log.Write("core", $"api key test: ok={test.Ok} model={test.Model} latency={test.LatencyMs} ms");
-        ApiKey = ApiKey with { LastTest = test };
+        if (remember)
+        {
+            var testedAt = _time.GetUtcNow();
+            if (_keyIdentity is { } identity)
+                try { _keyVerification.Save(identity, test, testedAt); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    _log.Write("core", "save key test metadata: " + ex.Message);
+                    test = test with { Message = test.Message + "；本地测试记录未能保存，重启后需重新测试" };
+                }
+            ApiKey = ApiKey with { LastTest = test, TestedAt = testedAt, IsHistorical = false };
+        }
         ApiKeyChanged?.Invoke(ApiKey);
         return test;
     }
 
-    private async Task RefreshApiKeyStateAsync(OpenCodeClient client, CancellationToken ct)
+    private async Task<bool> RefreshApiKeyStateAsync(OpenCodeClient client, CancellationToken ct)
     {
         try
         {
             var credentials = await client.ListKeyCredentialsAsync("anthropic", ct).ConfigureAwait(false);
             var current = credentials.FirstOrDefault(c => c.Active);
-            if (current.Id is null && credentials.Count > 0) current = credentials[0];
-            ApiKey = ApiKey with { Configured = credentials.Count > 0, Hint = current.Hint };
+            current ??= credentials.FirstOrDefault();
+            if (current is null || current.Identity != _keyIdentity)
+            {
+                _keyIdentity = current?.Identity;
+                var remembered = _keyVerification.Load(_keyIdentity);
+                ApiKey = new(current is not null, current?.Hint, remembered?.Test, remembered?.TestedAt, remembered is not null);
+            }
+            else ApiKey = ApiKey with { Configured = true, Hint = current.Hint };
         }
         catch (Exception ex) when (!ct.IsCancellationRequested)
         {
             _log.Write("core", "api key state refresh failed: " + ex.Message);
+            return false;
         }
         ApiKeyChanged?.Invoke(ApiKey);
+        return true;
     }
 
     private static string Shorten(string text, int max)
@@ -455,7 +492,8 @@ public sealed class Orchestrator : IAsyncDisposable
         if (_diagnosticsComplete && check.AnthropicStatus is not (200 or 401)) reasons.Add("Anthropic 连通性尚未确认");
         var message = reasons.Count == 0 ? (_diagnosticsComplete ? "连接服务正常" : "服务就绪，正在后台检测连接") : "服务运行中（" + string.Join("；", reasons) + "）";
         Set(new(reasons.Count == 0 ? LinkState.Ready : LinkState.Degraded, message, check.Node, check.DelayMs, check.Country,
-            check.Colo, check.EgressIp, check.Location, check.Org, _egress?.Consistency ?? EgressConsistency.Unknown, _egress?.Previous));
+            check.Colo, check.EgressIp, check.Location, check.Org, _egress?.Consistency ?? EgressConsistency.Unknown, _egress?.Previous,
+            NodeReachable: check.DelayMs is not null ? true : _diagnosticsComplete || _delayFailures > 0 ? false : null));
     }
 
     private void SetConflict(RouteConflict? conflict)
@@ -498,14 +536,14 @@ public sealed class Orchestrator : IAsyncDisposable
     {
         if (_stopping) return;
         _log.Write("core", $"mihomo exited unexpectedly (code {code})");
-        Set(new(LinkState.Error, "代理进程已退出：所有模型请求都会失败（不会直连）。请点“重启代理”。"));
+        Set(Status with { State = LinkState.Error, Message = "代理进程已退出，请点“重启代理”恢复连接。", DelayMs = null, NodeReachable = false });
     }
 
     private void OnOpenCodeExited(int code)
     {
         if (_stopping) return;
         _log.Write("core", $"opencode exited unexpectedly (code {code})");
-        Set(new(LinkState.Error, "OpenCode 服务已退出，请点“重启程序”。"));
+        Set(Status with { State = LinkState.Error, Message = "OpenCode 服务已退出，请点“重启程序”。" });
     }
 
 
