@@ -1,0 +1,57 @@
+# Portable runtime, private data, downloaded tools and release output
+/app/
+/bin/
+/data/
+/.tools/
+/dist/
+
+# .NET / IDE / test artifacts
+**/bin/
+**/obj/
+.vs/
+.idea/
+TestResults/
+*.user
+*.suo
+*.nupkg
+*.snupkg
+*.exe
+*.dll
+*.pdb
+*.zip
+*.tgz
+*.cab
+
+# Secrets, proxy profiles, sessions and logs (including accidental copies)
+.env
+.env.*
+!.env.example
+*.dpapi
+*.pem
+*.key
+*.pfx
+*.p12
+*.db
+*.db-*
+*.sqlite*
+*.log
+*.dmp
+*.tmp
+*.bak
+*.old
+*.backup
+auth.json
+credentials.json
+credentials.*.json
+secrets.json
+secrets.*.json
+*.yml
+*.yaml
+
+# Only reviewed, credential-free examples and CI YAML may be tracked
+!/examples/*.example.yml
+!/examples/*.example.yaml
+!/.github/
+!/.github/workflows/
+!/.github/workflows/*.yml
+!/.github/workflows/*.yaml

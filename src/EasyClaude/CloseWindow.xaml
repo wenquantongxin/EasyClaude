@@ -1,0 +1,16 @@
+<Window x:Class="EasyClaude.CloseWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Easy Claude" Width="530" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" Background="#F8FAFC">
+    <StackPanel Margin="24">
+        <TextBlock Text="关闭窗口后继续后台运行" FontSize="19" FontWeight="SemiBold" Foreground="#172033" />
+        <TextBlock Margin="0,14,0,22" TextWrapping="Wrap" Foreground="#526078" FontSize="14" LineHeight="22"
+                   Text="关闭窗口后，Easy Claude 将继续在系统托盘中运行，代理连接和后台任务不会中断。完全停止程序，请选择“退出程序”。" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="后台运行" IsDefault="True" Click="Background_Click" Style="{StaticResource PrimaryButton}" />
+            <Button Content="退出程序" Click="Exit_Click" Margin="8,0,0,0" />
+            <Button Content="取消" IsCancel="True" Margin="8,0,0,0" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Disabled so WPF and WinForms namespaces never collide; every file has explicit usings. -->
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>EasyClaude</RootNamespace>
+    <AssemblyName>EasyClaude</AssemblyName>
+    <Product>Easy Claude</Product>
+    <Version>0.2.0</Version>
+    <ApplicationIcon>Assets\EasyClaude.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\*.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EasyClaude.Core\EasyClaude.Core.csproj" />
+  </ItemGroup>
+
+</Project>

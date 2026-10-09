@@ -1,0 +1,21 @@
+# 无凭据示例。保留字段名，替换示例值后仅在程序窗口导入；不要提交真实节点。
+proxies:
+  - name: example-node
+    type: vless
+    server: vpn.example.invalid
+    port: 443
+    uuid: 00000000-0000-0000-0000-000000000000
+    tls: true
+    udp: true
+    servername: example.invalid
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: REPLACE_WITH_YOUR_PUBLIC_KEY
+      short-id: REPLACE_WITH_YOUR_SHORT_ID
+proxy-groups:
+  - name: Proxy
+    type: select
+    proxies:
+      - example-node
+rules:
+  - MATCH,Proxy

@@ -1,0 +1,4 @@
+Easy Claude portable root marker. Do not delete.
+app\  = published Easy Claude (start app\EasyClaude.exe)
+bin\  = vendored executables + GeoIP data (tools\vendor-binaries.ps1), private ACL
+data\ = settings, encrypted profile, OpenCode data (API key, sessions), logs; private ACL, never share or commit
