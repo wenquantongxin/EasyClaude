@@ -1,16 +1,12 @@
-using System.Security.Cryptography;
 using System.Text;
 
 namespace EasyClaude.Core;
 
 /// <summary>
-/// Stores the imported proxy profile encrypted with DPAPI (CurrentUser scope): only this Windows user on this
-/// machine can decrypt it. The original file is never modified.
+/// Stores a validated, portable UTF-8 YAML copy. The original file is never modified.
 /// </summary>
 public sealed class ProfileStore(string file)
 {
-    private static readonly byte[] Entropy = "EasyClaude.profile.v1"u8.ToArray();
-
     public bool Exists => File.Exists(file);
 
     public async Task<ProfileSummary> ImportAsync(string sourcePath,
@@ -24,9 +20,8 @@ public sealed class ProfileStore(string file)
             var summary = RuntimeConfigBuilder.Inspect(yaml);
             await validate(yaml, ct).ConfigureAwait(false);
             ct.ThrowIfCancellationRequested();
-            var encrypted = ProtectedData.Protect(bytes, Entropy, DataProtectionScope.CurrentUser);
             Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-            await File.WriteAllBytesAsync(tmp, encrypted, ct).ConfigureAwait(false);
+            await File.WriteAllTextAsync(tmp, yaml, new UTF8Encoding(false), ct).ConfigureAwait(false);
             ct.ThrowIfCancellationRequested();
             File.Move(tmp, file, overwrite: true);
             return summary;
@@ -40,10 +35,8 @@ public sealed class ProfileStore(string file)
 
     public string LoadText()
     {
-        if (!Exists) throw new FileNotFoundException("尚未导入代理配置");
-        var decrypted = ProtectedData.Unprotect(File.ReadAllBytes(file), Entropy, DataProtectionScope.CurrentUser);
-        try { return Decode(decrypted); }
-        finally { Array.Clear(decrypted); }
+        if (!Exists) throw new FileNotFoundException("尚未保存节点配置，请点击“导入节点配置”选择 YAML 文件。", file);
+        return Decode(File.ReadAllBytes(file));
     }
 
     private static string Decode(byte[] bytes) =>

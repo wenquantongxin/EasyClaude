@@ -77,7 +77,7 @@
                         <Border Style="{StaticResource Card}">
                             <DockPanel>
                                 <Border DockPanel.Dock="Left" Width="30" Height="30" CornerRadius="9" Background="#EFF6FF" VerticalAlignment="Top" Margin="0,0,16,0"><TextBlock Text="1" Foreground="#2563EB" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
-                                <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="导入节点配置" /><TextBlock Text="点击右上角“导入节点配置”，选择包含内联节点的 mihomo / Clash YAML。验证成功后，程序保存加密副本到 data\profiles；原始文件移动或删除后仍可使用。" /></StackPanel>
+                                <StackPanel><TextBlock Style="{StaticResource CardTitle}" Text="导入节点配置" /><TextBlock Text="点击右上角“导入节点配置”，选择包含内联节点的 mihomo / Clash YAML。验证成功后，程序保存普通 YAML 副本到 data\profiles\profile.yml；原始文件移动或删除后仍可使用，配置也可随程序搬到另一台电脑。" /></StackPanel>
                             </DockPanel>
                         </Border>
                         <Border Style="{StaticResource Card}">
@@ -138,7 +138,7 @@
                                 <TextBlock Style="{StaticResource CardTitle}" Text="Key 已保存，但模型测试失败" Margin="0,16,0,5" />
                                 <TextBlock Text="按窗口显示的认证、限流或网络原因处理，再用“测试已保存的 Key”重试。Haiku 确认不可用时，程序最多尝试默认模型一次，并显示实际模型和回退原因。" />
                                 <TextBlock Style="{StaticResource CardTitle}" Text="换电脑或搬动程序目录" Margin="0,16,0,5" />
-                                <TextBlock Text="同一电脑搬动目录时，保留 app、bin、data 与 easyclaude.root。新电脑复制 app、bin 与 easyclaude.root 即可，无需安装 Clash Verge 或 .NET；启动后重新导入原始节点 YAML、填写 Key。旧电脑的加密节点副本绑定 Windows 用户，不能直接解密。WebView2 使用系统运行时，缺失时会提示安装。" />
+                                <TextBlock Text="便携发行版完整复制 EasyClaude.exe 与 app 文件夹即可；app 内的 data 保存节点配置、Key 和会话，不绑定原电脑。源码工作区搬动时保留 app、bin、data 与 easyclaude.root。无需安装 Clash Verge 或 .NET；WebView2 使用系统运行时，缺失时会提示安装。旧版本的加密节点文件需要在原电脑转换，或在新电脑重新导入原始 YAML。" />
                             </StackPanel>
                         </Border>
                         <TextBlock Text="此帮助页可离线阅读，浏览时后台连接继续运行。本地配置与会话位于程序目录的 data 中。请只在 Key 窗口填写凭据，分享问题时避开 Key、节点配置及会话数据。" FontSize="12" Foreground="#8293AC" Margin="2,4,2,20" />

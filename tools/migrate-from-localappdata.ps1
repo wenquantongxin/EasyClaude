@@ -1,5 +1,5 @@
 # One-time move of Easy Claude data from %LOCALAPPDATA%\EasyClaude (old layout) into <root>\data, then removes the old folder.
-# Migrated: settings.json, egress.json, profiles\ (DPAPI-encrypted profile), opencode\ (isolated OpenCode: API key, sessions), logs\.
+# Migrated: settings.json, egress.json, profiles\, opencode\ (isolated OpenCode: API key, sessions), logs\.
 # Not migrated (regenerated): bin\ (re-vendored), mihomo\ (runtime home), webview2\ (browser cache).
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot

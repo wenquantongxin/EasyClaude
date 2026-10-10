@@ -22,7 +22,7 @@ public class GitIgnoreTests
                 return process.ExitCode;
             }
             Assert.Equal(0, await Git("init", "--quiet"));
-            foreach (var name in new[] { "data/opencode/session.db", "bin/easyclaude-mihomo.exe", "app/EasyClaude.exe", "src/EasyClaude/bin/test.dll", "node.yml", ".env", "copy.dpapi" })
+            foreach (var name in new[] { "data/opencode/session.db", "data/profiles/profile.yml", "Releases/app/data/profiles/profile.yml", "bin/easyclaude-mihomo.exe", "app/EasyClaude.exe", "src/EasyClaude/bin/test.dll", "node.yml", ".env", "copy.dpapi" })
                 Assert.Equal(0, await Git("check-ignore", "--no-index", "--quiet", name));
             foreach (var name in new[] { "src/EasyClaude/Assets/EasyClaude.ico", "src/EasyClaude.Core/dependencies.json", "examples/node.example.yml", ".github/workflows/build.yml", "README.md" })
                 Assert.Equal(1, await Git("check-ignore", "--no-index", "--quiet", name));

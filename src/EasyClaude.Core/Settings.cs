@@ -6,7 +6,7 @@ namespace EasyClaude.Core;
 
 /// <summary>
 /// Portable layout. Everything lives under the Easy Claude root (the folder containing <see cref="RootMarker"/>):
-/// bin\ = vendored executables and GeoIP data, data\ = settings, encrypted profile, OpenCode data, logs, WebView2 data, temp.
+/// bin\ = vendored executables and GeoIP data, data\ = settings, YAML profile, OpenCode data, logs, WebView2 data, temp.
 /// </summary>
 public sealed class AppPaths
 {
@@ -37,7 +37,7 @@ public sealed class AppPaths
     public string EgressFile => Path.Combine(DataDir, "egress.json");
     public string ApiKeyTestFile => Path.Combine(DataDir, "api-key-test.json");
     public string ProfilesDir => Path.Combine(DataDir, "profiles");
-    public string ProfileFile => Path.Combine(ProfilesDir, "profile.yml.dpapi");
+    public string ProfileFile => Path.Combine(ProfilesDir, "profile.yml");
     public string MihomoHome => Path.Combine(DataDir, "mihomo");
     public string MihomoConfig => Path.Combine(MihomoHome, "config.yaml");
     public string OpenCodeRoot => Path.Combine(DataDir, "opencode");

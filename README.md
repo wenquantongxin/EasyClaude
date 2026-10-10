@@ -4,14 +4,16 @@
 
 ## 启动与目录
 
-发布程序从 app\EasyClaude.exe 启动。app 自带 .NET 10 运行时，目标为 Windows x64；无需安装 .NET。WebView2 使用系统的 Evergreen 运行时，缺失时自动获取微软完整安装程序、验证微软签名后安装。首次补齐运行组件需要网络，不属于完整离线安装包。
+便携发行版直接双击 Releases\EasyClaude.exe。Releases 顶层只有这一个 EXE 和 app 文件夹；.NET 10 运行时、mihomo、OpenCode、四份 Geo 数据与个人数据都在 app 内。完整组件正常首次启动无需下载；无需安装 .NET。WebView2 使用系统的 Evergreen 运行时，缺失时仍需获取微软完整安装程序、验证微软签名后安装。本机组件中的 mihomo 为 amd64-v3，发行包要求支持 AVX2 的 Windows x64 电脑。源码工作区的日常程序仍可从 app\EasyClaude.exe 启动。
 
 | 路径 | 内容 |
 |---|---|
 | easyclaude.root | 定位程序根目录的标记，必须保留 |
 | app | 主程序和自带 .NET 10 运行时 |
 | bin | 私有 mihomo、OpenCode、Geo 数据及来源/完整性清单 |
-| data\profiles | 当前 Windows 用户绑定的 DPAPI 加密节点配置副本 |
+| Releases\EasyClaude.exe | 便携发行版唯一启动入口，版本号内嵌于 EXE |
+| Releases\app | 发行版运行文件；bin、data 与根目录标记均在此文件夹内；不提交 Git，也不由清理脚本删除 |
+| data\profiles | 普通 UTF-8 YAML 节点配置副本，可随程序搬到另一台电脑 |
 | data\opencode | 独立 OpenCode 配置、凭据与会话数据库 |
 | data\logs、data\webview2、data\tmp | 日志、WebView2 缓存及临时文件 |
 | src、tests、tools、examples | 源码、验证工具和无凭据示例 |
@@ -48,23 +50,32 @@ bin 和 data 的目录访问权限限定为当前用户、SYSTEM 与管理员。
 
 防火墙加固仅针对本目录 bin\easyclaude-opencode.exe，阻止非回环 IPv4/IPv6 出网，允许它连接本地代理。启用、修复和移除需要 Windows 管理员许可；取消后按当前实际状态继续运行，不影响普通模式。实际规则状态显示并保存。该功能不改变其他客户端、系统代理或系统防火墙开关。防火墙不是 OpenCode 工具或插件的沙箱。
 
-API Key 保存在独立 OpenCode 数据库中，受目录 ACL 保护；**该上游数据库包含明文凭据，并非 DPAPI 加密存储**。只有导入节点配置由本程序 DPAPI 加密。不要共享 data 或运行日志，不要在聊天中粘贴 Key。
+本程序不加密本地业务数据：节点配置保存为 data\profiles\profile.yml，API Key 保存在独立 OpenCode 数据库中，两者均不绑定 Windows 用户或电脑。保留基本目录权限与日志脱敏，真实节点、Key 和会话继续由 .gitignore 排除。
 
 ## 新电脑使用
 
-支持 Windows x64 的新电脑无需安装 Clash Verge 或 .NET。复制 app、bin 和 easyclaude.root，启动 app\EasyClaude.exe 后重新导入原始节点 YAML、填写 Claude Key；数据会在新电脑创建。不要直接复制旧电脑的 data 作为首次配置：加密节点副本绑定旧电脑的 Windows 用户，不能直接解密。WebView2 使用系统运行时，缺失时按提示安装；没有复制的运行组件由程序自动补齐。
+支持 Windows x64 的新电脑无需安装 Clash Verge 或 .NET。便携发行版完整复制 Releases 内的 EasyClaude.exe 和 app，节点配置、Key 与会话保存在 app\data，可一起搬动；复制前从托盘完全退出程序，避免复制正在写入的数据库。只使用源码工作区程序时，则复制 app、bin、data 与 easyclaude.root，启动 app\EasyClaude.exe。WebView2 使用系统运行时，缺失时按提示安装；没有复制的运行组件由程序自动补齐。
+
+0.2.4 起节点文件统一为普通 profile.yml，不再读取或生成 DPAPI 文件。本次更新已在原电脑将现有节点配置转换为 YAML。已经搬到另一台电脑的旧 profile.yml.dpapi 无法在那里直接解密：替换为更新后的完整便携目录，或点击“导入节点配置”重新导入原始 YAML。
 
 ## 从源码发布和验证
 
-需要 .NET 10 SDK；发布脚本优先使用 .tools\dotnet\dotnet.exe，再查找系统 SDK。它先发布到暂存目录，成功后替换 app，并把旧程序临时保存在 .tools 中，保留 bin 和 data。
+tools/publish.ps1 是唯一打包入口。默认使用本机已有的自包含 app 与 bin，校验六份组件后，从干净 dist 暂存目录生成最小便携目录；不下载组件，不覆盖源码工作区的 app/bin/data。默认输出到本项目 Releases，只有 EasyClaude.exe 与 app 两项，不生成版本子目录、VBS、ZIP、README、发布说明、校验文本或验收记录，也不另建归档。入口通过微软标准 apphost 直接加载 app/EasyClaude.dll，保留图标、EXE 版本和同进程重启行为；运行根标记放在 app 内，避免发行版读取源码工作区的配置。
+
+默认打包只包装当前 app，不会把新的源码改动编译进去；使用本机已装 SDK 的 HostModel 与 Windows x64 apphost 模板重新生成直接入口，本机 .NET 9 SDK 即可处理已有 .NET 10 自包含程序。用户运行发行版不需要 SDK。-Build 从源码重新构建主程序，需要 .NET 10 SDK（优先 .tools\dotnet\dotnet.exe，再查找系统 SDK）。-NoRestore 只与 -Build 一起使用。第三方许可保存在运行文件夹内，不出现在 Releases 顶层。
+
+替换已有发行目录使用 -Replace；若该目录已有个人数据，必须通过 -DataDirectory 明确指定要保留的数据。程序运行中不允许替换。节点、Key、会话及设置复制后逐文件确认一致，再替换目录；浏览器缓存、mihomo 运行目录、日志与临时文件不随打包复制，由目标电脑重新创建，原目录中的这些文件保留。临时回滚副本在成功后删除，不保留历史发行垃圾。没有 -DataDirectory 时不会从源码工作区复制 Key、节点或会话。
 
 ~~~powershell
 pwsh -File tools\publish.ps1
+pwsh -File tools\publish.ps1 -Build
+pwsh -File tools\publish.ps1 -Replace -DataDirectory Releases\app\data
+pwsh -File tools\verify-release.ps1 -Lifecycle -ProfilePath Releases\app\data\profiles\profile.yml
 .\.tools\dotnet\dotnet.exe test tests\EasyClaude.Core.Tests -c Release
 .\.tools\dotnet\dotnet.exe build tools\EasyClaude.Smoke -c Release
 ~~~
 
-端到端冒烟测试应使用隔离根目录（带 easyclaude.root）、私有组件副本及当前用户可解密的节点配置，避免使用生产凭据数据库。已有本地组件时传 --skip-restore，避免下载。
+端到端冒烟测试应使用隔离根目录（带 easyclaude.root）、私有组件副本及 YAML 节点配置，避免使用生产凭据数据库。已有本地组件时传 --skip-restore，避免下载。
 
 ~~~powershell
 .\.tools\dotnet\dotnet.exe tools\EasyClaude.Smoke\bin\Release\net10.0-windows\EasyClaude.Smoke.dll --root F:\LLM-models\EasyClaude\.tools\acceptance --skip-restore
@@ -72,7 +83,9 @@ pwsh -File tools\publish.ps1
 
 WPF 无真实 Key 的界面检查可用 app\EasyClaude.exe --root 隔离目录 --ui-check 输出目录，生成 100%、150%、200% 界面 PNG 和检查结果。图标源 SVG、多尺寸 ICO 与生成脚本可提交；重新生成使用 powershell -File tools\generate-icons.ps1。
 
-.gitignore 排除 app/bin/data、构建输出、EXE/DLL、数据库、凭据、真实 YAML 和下载包；仅允许 examples 中以 .example.yml/.example.yaml 结尾的无凭据示例以及 .github/workflows 中的 CI 配置。发布脚本构建主程序，已发布程序负责补齐运行组件。
+.gitignore 排除 app/bin/data、dist、Releases、构建输出、EXE/DLL、数据库、凭据、真实 YAML、快捷方式和下载包；仅允许 examples 中以 .example.yml/.example.yaml 结尾的无凭据示例以及 .github/workflows 中的 CI 配置。源码与打包脚本正常提交。完整便携目录自带运行组件，已发布程序保留缺失组件的恢复能力。
+
+verify-release.ps1 将实际发行目录的运行文件复制到 dist 的隔离目录，排除个人 data，检查两项顶层布局、六份组件及直接 EXE 启动。启动检查刻意不传 --root，以验证自动定位不会误用源码目录。可选 -Lifecycle 只复用 YAML 节点副本，不复制生产 Key 或会话；验证服务启动、WebView2、帮助页、重启及退出清理。检查结果只输出到控制台，不保存验收记录；临时配置、数据库及渲染文件自动删除。搬动便携程序时完整复制 EasyClaude.exe 和 app；已有 data 属于个人数据。
 
 参考：[微软 WebView2 部署](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution)、[.NET 支持周期](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core)、[OpenCode 安装](https://opencode.ai/v2/install)。
 
@@ -85,6 +98,6 @@ pwsh -File tools\clean-local.ps1
 pwsh -File tools\clean-local.ps1 -Execute
 ~~~
 
-清理范围只在此 Easy Claude 目录内：删除构建 bin/obj、临时 SDK、测试实例、旧发布副本、日志、OpenCode 凭据/会话数据库和 WebView2 缓存。当前 app、运行组件 bin、data/settings.json 和加密节点配置保留。执行后需重新填写 Claude Key，旧会话无法在程序中恢复；下次从源码编译需要 .NET 10 SDK。用户的其他工作区、全局 SDK 与全局 NuGet 缓存不在清理范围内。
+清理范围只在此 Easy Claude 目录内：删除构建 bin/obj、临时 SDK、测试实例、.tools 中的旧程序临时副本、日志、OpenCode 凭据/会话数据库和 WebView2 缓存。当前 app、运行组件 bin、正式发行目录 Releases、data/settings.json 和 YAML 节点配置保留。执行后需重新填写 Claude Key，旧会话无法在程序中恢复；下次从源码编译需要 .NET 10 SDK。用户的其他工作区、全局 SDK 与全局 NuGet 缓存不在清理范围内。
 
 只清理构建和隔离测试文件、保留全部当前运行数据时，使用 `pwsh -File tools\clean-local.ps1 -BuildOnly` 预览，再追加 `-Execute` 执行。

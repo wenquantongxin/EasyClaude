@@ -4,6 +4,7 @@
 /data/
 /.tools/
 /dist/
+/Releases/
 
 # .NET / IDE / test artifacts
 **/bin/
@@ -21,6 +22,7 @@ TestResults/
 *.zip
 *.tgz
 *.cab
+*.lnk
 
 # Secrets, proxy profiles, sessions and logs (including accidental copies)
 .env

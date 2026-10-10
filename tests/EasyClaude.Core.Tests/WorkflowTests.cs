@@ -41,14 +41,19 @@ public class ConfigurationWorkflowTests
         try
         {
             var source = Path.Combine(dir, "original.yml");
-            var destination = Path.Combine(dir, "stored.dpapi");
+            var destination = Path.Combine(dir, "stored.yml");
             await File.WriteAllTextAsync(source, Profile);
             var store = new ProfileStore(destination);
             var validated = false;
             await store.ImportAsync(source, (yaml, _) => { validated = yaml == Profile; return Task.CompletedTask; });
             Assert.True(validated);
+            Assert.Equal(Profile, await File.ReadAllTextAsync(destination));
             File.Delete(source);
             Assert.Equal(Profile, store.LoadText());
+            var relocated = Path.Combine(dir, "relocated", "profile.yml");
+            Directory.CreateDirectory(Path.GetDirectoryName(relocated)!);
+            File.Copy(destination, relocated);
+            Assert.Equal(Profile, new ProfileStore(relocated).LoadText());
             var previous = await File.ReadAllBytesAsync(destination);
             await File.WriteAllTextAsync(source, Profile.Replace("Test", "Replacement"));
             await Assert.ThrowsAsync<InvalidDataException>(() => store.ImportAsync(source, (_, _) => throw new InvalidDataException("core rejected")));
@@ -58,20 +63,67 @@ public class ConfigurationWorkflowTests
         finally { Directory.Delete(dir, true); }
     }
 
-    [Fact]
-    public async Task Cancelled_validation_never_commits()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Cancelled_validation_never_commits(bool existing)
     {
         var dir = Path.Combine(Path.GetTempPath(), "ec-cancel-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dir);
         try
         {
             var source = Path.Combine(dir, "original.yml");
-            var target = Path.Combine(dir, "stored.dpapi");
+            var target = Path.Combine(dir, "stored.yml");
             await File.WriteAllTextAsync(source, Profile);
+            if (existing) await File.WriteAllTextAsync(target, Profile);
             using var cts = new CancellationTokenSource();
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => new ProfileStore(target).ImportAsync(source,
                 (_, _) => { cts.Cancel(); return Task.CompletedTask; }, cts.Token));
-            Assert.False(File.Exists(target));
+            Assert.Equal(existing, File.Exists(target));
+            if (existing) Assert.Equal(Profile, await File.ReadAllTextAsync(target));
+            Assert.Empty(Directory.GetFiles(dir, "*.tmp"));
+        }
+        finally { Directory.Delete(dir, true); }
+    }
+
+    [Fact]
+    public async Task Import_normalizes_utf8_bom_and_preserves_unicode_node_names()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "ec-unicode-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var yaml = Profile.Replace("Test", "东京节点");
+            var source = Path.Combine(dir, "original.yml");
+            var paths = new AppPaths(dir);
+            await File.WriteAllTextAsync(source, yaml, new UTF8Encoding(true));
+            var store = new ProfileStore(paths.ProfileFile);
+            await store.ImportAsync(source, (_, _) => Task.CompletedTask);
+            Assert.Equal("profile.yml", Path.GetFileName(paths.ProfileFile));
+            Assert.Equal(yaml, store.LoadText());
+            Assert.Equal(Encoding.UTF8.GetBytes(yaml), await File.ReadAllBytesAsync(paths.ProfileFile));
+        }
+        finally { Directory.Delete(dir, true); }
+    }
+
+    [Fact]
+    public async Task Invalid_yaml_never_replaces_stored_profile()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "ec-invalid-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            var source = Path.Combine(dir, "original.yml");
+            var destination = Path.Combine(dir, "stored.yml");
+            await File.WriteAllTextAsync(source, "proxies: [");
+            await File.WriteAllTextAsync(destination, Profile);
+            var store = new ProfileStore(destination);
+            var validated = false;
+            await Assert.ThrowsAsync<InvalidDataException>(() => store.ImportAsync(source, (_, _) =>
+            { validated = true; return Task.CompletedTask; }));
+            Assert.False(validated);
+            Assert.Equal(Profile, store.LoadText());
+            Assert.Empty(Directory.GetFiles(dir, "*.tmp"));
         }
         finally { Directory.Delete(dir, true); }
     }

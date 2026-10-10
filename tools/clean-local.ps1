@@ -37,7 +37,7 @@ $taskTargets = foreach ($taskRelative in $taskRelativeTargets) {
     [PSCustomObject]@{ Path = $taskTarget; Bytes = $taskBytes; GiB = [Math]::Round($taskBytes / 1GB, 3) }
 }
 $taskTargets | Format-Table Path,GiB -AutoSize
-Write-Output ('Selected: {0:N3} GiB. Runtime app/bin, settings and encrypted node profile are preserved.' -f ($taskTotal / 1GB))
+Write-Output ('Selected: {0:N3} GiB. Runtime app/bin, Releases, settings and YAML node profile are preserved.' -f ($taskTotal / 1GB))
 if (-not $Execute) { Write-Output 'Preview only. Run again with -Execute to delete. -BuildOnly preserves all production data.'; return }
 # Stop build servers hosted by this checkout's disposable SDK (including dotnet-hosted MSBuild/Roslyn).
 $taskSdkPrefix = (Join-Path $taskRoot '.tools\dotnet') + '\'
@@ -52,5 +52,5 @@ foreach ($taskTarget in $taskTargets) {
     # Absolute targets were validated above. Use the same PowerShell shell end-to-end.
     Remove-Item -LiteralPath $taskTarget.Path -Recurse -Force -ErrorAction Stop
 }
-if ($BuildOnly) { Write-Output ('Removed {0:N3} GiB of build/test files. All production data preserved.' -f ($taskTotal / 1GB)) }
-else { Write-Output ('Removed {0:N3} GiB. Stored Claude key, sessions and browser cache have been erased.' -f ($taskTotal / 1GB)) }
+if ($BuildOnly) { Write-Output ('Removed {0:N3} GiB of build/test files. All production data and Releases preserved.' -f ($taskTotal / 1GB)) }
+else { Write-Output ('Removed {0:N3} GiB. Stored Claude key, sessions and browser cache have been erased. Releases preserved.' -f ($taskTotal / 1GB)) }
